@@ -21,19 +21,17 @@ estoque e vendas para instituições. **Contexto completo** — propósito, obje
    ou mudança real no projeto que deixou o arquivo desatualizado. Sugestões vão em issue ou comentário.
 3. **Nunca edite uma migration existente** em `prisma/migrations/`. Mudança de schema só com pedido
    explícito (regra 1) e sempre por uma migration nova.
-4. **Nunca trabalhe direto na `main`.** Toda tarefa tem uma issue: trabalhe **na branch da issue**,
-   criada a partir dela (no GitHub, em _Development › Create a branch_, ou `gh issue develop <número> --checkout`).
-   Faça os commits nessa branch e só depois integre na `main` com merge. Se a tarefa não tiver issue,
-   peça ao dono do repositório para criar uma antes de começar.
-5. **Nunca exponha credenciais**: não exiba o conteúdo do `.env` nem o commite. Use o `.env.example`
+4. **Nunca exponha credenciais**: não exiba o conteúdo do `.env` nem o commite. Use o `.env.example`
    como modelo. Os backups do banco (`backups/`) também nunca vão para o git.
-6. **Nunca pule, desabilite ou apague um teste que falha** para deixar a execução verde. Corrija o teste
+5. **Nunca pule, desabilite ou apague um teste que falha** para deixar a execução verde. Corrija o teste
    ou reporte o bug encontrado no código.
-7. **Não altere `package.json`, `package-lock.json`, `tsconfig.json` nem `vitest.config.mts`**, nem adicione
+6. **Não altere `package.json`, `package-lock.json`, `tsconfig.json` nem `vitest.config.mts`**, nem adicione
    ou atualize dependências, sem pedido explícito.
 
 ## Regras gerais
 - Faça mudanças pequenas e focadas no que foi pedido; não reformate nem refatore arquivos sem relação.
+- De preferência, trabalhe **na branch da issue** da tarefa (no GitHub, em _Development › Create a branch_,
+  ou `gh issue develop <número> --checkout`) e integre na `main` com merge.
 - Antes de uma tarefa maior, apresente o plano em passos e confirme.
 - TypeScript estrito: não use `any`; em `catch`, use `unknown` com `errorMessage()` de `lib/errors.ts`.
 - Rotas novas devem usar `pickFields`/`requireFields`/`handleError` (`lib/api.ts`) e um schema em `lib/fields.ts`;

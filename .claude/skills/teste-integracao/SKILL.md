@@ -27,8 +27,10 @@ Os testes **apagam todas as tabelas antes de cada teste**. Por isso:
 3. Aplique as migrations nele: `DATABASE_URL="<url do .env.test>" npx prisma migrate deploy`.
 4. Rode `npm run test:integracao` para conferir.
 
-## Configuração do projeto (uma única vez, pelo @davigrossis)
-Se `vitest.integracao.config.mts` já existir, pule esta seção e **não a altere**.
+## Configuração do projeto (uma única vez, por quem começar primeiro)
+Se `vitest.integracao.config.mts` já existir na `main` (faça `git pull`), pule esta seção e **não a altere**.
+Se não existir, faça a configuração abaixo, integre na `main` **antes** de escrever os testes e avise o time,
+para que só uma pessoa mexa no `package.json`.
 
 1. `vitest.integracao.config.mts` na raiz:
    ```ts
