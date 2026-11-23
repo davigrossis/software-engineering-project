@@ -69,3 +69,24 @@ Entidades (`/api/...`): `customers`, `suppliers`, `products`, `stock`, `acquisit
 | `npm run build` | Build de produção            |
 | `npm run start` | Servidor de produção         |
 | `npm run lint`  | ESLint                       |
+
+## Testes de sistema
+
+`tests/sistema/sistema.mjs` testa o **sistema completo e integrado** (servidor + API + banco), sem mocks.
+Ele cobre os requisitos funcionais de todas as classes (cadastros, aquisições e estoque, pedidos e itens, validação
+de entrada, exclusão) e um requisito não funcional: o **tempo de resposta** de cada requisição.
+
+```bash
+npx prisma migrate deploy   # banco com o schema atualizado
+npm run dev                 # em um terminal
+node tests/sistema/sistema.mjs   # em outro terminal
+```
+
+Variáveis opcionais: `BASE_URL` (padrão `http://localhost:3000`) e `LIMITE_MS` (tempo máximo por requisição,
+padrão `3000`).
+
+Para avaliar o tempo de resposta de forma justa, rode o app em modo produção (`npm run build && npm start`):
+no `npm run dev` a primeira chamada de cada rota inclui o tempo de compilação.
+
+> O teste cria registros (com o sufixo `E2E-<execução>`) no banco que o servidor estiver usando e os apaga ao
+> final. Use um banco de desenvolvimento ou de teste, nunca o de produção.
