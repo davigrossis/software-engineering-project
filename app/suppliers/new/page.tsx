@@ -2,6 +2,7 @@
 
 import SetHeader from '@/components/header/SetHeader';
 import { useState } from 'react';
+import { errorMessage } from '@/lib/errors';
 
 const formatCPF = (value: string) => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -60,8 +61,8 @@ export default function NewSupplierPage() {
             if (!res.ok) throw new Error(result.error);
 
             window.history.back();
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

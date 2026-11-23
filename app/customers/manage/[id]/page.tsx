@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
 
 interface Cliente {
     id: number;
@@ -123,8 +124,8 @@ export default function ManageCustomerPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/customers');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 
@@ -142,8 +143,8 @@ export default function ManageCustomerPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/customers');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

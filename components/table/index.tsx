@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+
+export type TableRow = { id: number | string } & Record<string, React.ReactNode>;
 
 interface TableProps {
     headers: string[];
-    data: Record<string, any>[];
+    data: TableRow[];
     categories?: string[];
     showFilter?: boolean;
-    onManage?: (row: Record<string, any>) => void;
+    onManage?: (row: TableRow) => void;
     routes?: string;
 }
 
@@ -17,9 +19,6 @@ const Table: React.FC<TableProps> = ({ headers, data, categories = [], showFilte
     const [selectedCategory, setSelectedCategory] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, selectedCategory]);
 
     const filteredData = useMemo(() => {
         let filtered = data;
@@ -53,13 +52,13 @@ const Table: React.FC<TableProps> = ({ headers, data, categories = [], showFilte
                         type="text"
                         placeholder="Pesquisar..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                         className="search-input w-7/10 bg-gray-100 border border-gray-300 rounded-t-lg p-2 ring-0 focus:outline-none focus:ring-0"
                     />
                     {showFilter && (
                         <select
                             value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
                             className="filter-select bg-gray-100 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none"
                         >
                             <option value="">Todas as categorias</option>

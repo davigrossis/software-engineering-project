@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, parseId, pickFields } from '@/lib/api';
+import { PRODUTO_FIELDS } from '@/lib/fields';
+
+const NOT_FOUND = 'Produto não encontrado';
 
 export async function GET(
   request: Request,
@@ -8,23 +12,16 @@ export async function GET(
   try {
     const { id } = await params;
     const produto = await prisma.produto.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     if (!produto) {
-      return NextResponse.json(
-        { error: 'Produto não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json(produto);
   } catch (error) {
-    console.error('Erro ao buscar produto:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar produto' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar produto', NOT_FOUND);
   }
 }
 
@@ -34,27 +31,32 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const data = await request.json();
-    const produto = await prisma.produto.update({
-      where: { id: parseInt(id) },
-      data,
+    const data = pickFields(await request.json(), PRODUTO_FIELDS);
+
+    const produto = await prisma.$transaction(async (tx) => {
+      const atualizado = await tx.produto.update({
+        where: { id: parseId(id) },
+        data,
+      });
+
+      // Mantém em sincronia os dados do produto que são copiados para o Estoque
+      if (atualizado.id_estoque) {
+        await tx.estoque.update({
+          where: { id: atualizado.id_estoque },
+          data: {
+            nome: atualizado.nome,
+            categoria: atualizado.categoria,
+            preco: atualizado.preco,
+          },
+        });
+      }
+
+      return atualizado;
     });
 
     return NextResponse.json(produto);
-  } catch (error: any) {
-    console.error('Erro ao atualizar produto:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Produto não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao atualizar produto' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao atualizar produto', NOT_FOUND);
   }
 }
 
@@ -65,26 +67,14 @@ export async function DELETE(
   try {
     const { id } = await params;
     await prisma.produto.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     return NextResponse.json(
       { message: 'Produto excluído com sucesso' },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error('Erro ao deletar produto:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Produto não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao deletar produto' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao deletar produto', NOT_FOUND);
   }
 }

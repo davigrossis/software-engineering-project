@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, parseId, pickFields } from '@/lib/api';
+import { FORNECEDOR_FIELDS } from '@/lib/fields';
+
+const NOT_FOUND = 'Fornecedor não encontrado';
 
 export async function GET(
   request: Request,
@@ -8,23 +12,16 @@ export async function GET(
   try {
     const { id } = await params;
     const fornecedor = await prisma.fornecedor.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     if (!fornecedor) {
-      return NextResponse.json(
-        { error: 'Fornecedor não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json(fornecedor);
   } catch (error) {
-    console.error('Erro ao buscar fornecedor:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar fornecedor' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar fornecedor', NOT_FOUND);
   }
 }
 
@@ -34,27 +31,15 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const data = await request.json();
+    const data = pickFields(await request.json(), FORNECEDOR_FIELDS);
     const fornecedor = await prisma.fornecedor.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data,
     });
 
     return NextResponse.json(fornecedor);
-  } catch (error: any) {
-    console.error('Erro ao atualizar fornecedor:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Fornecedor não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao atualizar fornecedor' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao atualizar fornecedor', NOT_FOUND);
   }
 }
 
@@ -65,26 +50,14 @@ export async function DELETE(
   try {
     const { id } = await params;
     await prisma.fornecedor.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     return NextResponse.json(
       { message: 'Fornecedor excluído com sucesso' },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error('Erro ao deletar fornecedor:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Fornecedor não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao deletar fornecedor' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao deletar fornecedor', NOT_FOUND);
   }
 }

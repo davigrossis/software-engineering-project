@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, pickFields, requireFields } from '@/lib/api';
+import { CLIENTE_FIELDS } from '@/lib/fields';
+import type { Prisma } from '@/app/generated/prisma';
 
 export async function GET() {
   try {
@@ -15,25 +18,21 @@ export async function GET() {
         id: 'desc'
       }
     });
-    
+
     return NextResponse.json(clientes);
   } catch (error) {
-    console.error('Erro ao buscar clientes:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar clientes' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar clientes');
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const cliente = await prisma.cliente.create({ data });
+    const data = pickFields(await request.json(), CLIENTE_FIELDS);
+    requireFields(data, ['instituicao', 'cnpj', 'telefone', 'responsavel']);
+    // requireFields acima garante os campos obrigatórios em tempo de execução
+    const cliente = await prisma.cliente.create({ data: data as unknown as Prisma.ClienteCreateInput });
     return NextResponse.json(cliente, { status: 201 });
-  } catch (error: any) {
-    console.error('Erro ao criar cliente:', error);
-    const status = error.code === 'P2002' ? 409 : 500;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error) {
+    return handleError(error, 'Erro ao criar cliente');
   }
 }

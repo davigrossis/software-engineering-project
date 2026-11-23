@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, pickFields, requireFields } from '@/lib/api';
+import { PRODUTO_FIELDS } from '@/lib/fields';
+import type { Prisma } from '@/app/generated/prisma';
 
 export async function GET() {
   try {
@@ -16,25 +19,21 @@ export async function GET() {
         id: 'desc'
       }
     });
-    
+
     return NextResponse.json(produtos);
   } catch (error) {
-    console.error('Erro ao buscar produtos:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar produtos' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar produtos');
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const produto = await prisma.produto.create({ data });
+    const data = pickFields(await request.json(), PRODUTO_FIELDS);
+    requireFields(data, ['nome', 'codigo_produto', 'categoria', 'preco']);
+    // requireFields acima garante os campos obrigatórios em tempo de execução
+    const produto = await prisma.produto.create({ data: data as unknown as Prisma.ProdutoCreateInput });
     return NextResponse.json(produto, { status: 201 });
-  } catch (error: any) {
-    console.error('Erro ao criar produto:', error);
-    const status = error.code === 'P2002' ? 409 : 500;
-    return NextResponse.json({ error: error.message }, { status });
+  } catch (error) {
+    return handleError(error, 'Erro ao criar produto');
   }
 }

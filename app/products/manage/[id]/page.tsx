@@ -3,12 +3,22 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
+
+interface Produto {
+    id: number;
+    nome: string;
+    codigo_produto: string;
+    categoria: string;
+    preco: number;
+    unidade: string;
+}
 
 export default function ManageProductPage() {
     const params = useParams();
     const router = useRouter();
     const id = params?.id as string;
-    const [produto, setProduto] = useState<any>(null);
+    const [produto, setProduto] = useState<Produto | null>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -56,8 +66,8 @@ export default function ManageProductPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/products');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 
@@ -72,8 +82,8 @@ export default function ManageProductPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/products');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

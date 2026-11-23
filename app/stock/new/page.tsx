@@ -1,12 +1,12 @@
 'use client';
 
 import SetHeader from '@/components/header/SetHeader';
-import GenericForm from '@/components/form/GenericForm';
+import GenericForm, { type FormValues } from '@/components/form/GenericForm';
 import { useEffect, useState } from 'react';
+import { errorMessage } from '@/lib/errors';
 
 export default function NewStockPage() {
     const [produtos, setProdutos] = useState<Array<{ id: number; nome: string; preco: number; categoria: string }>>([]);
-    const [produtoSelecionado, setProdutoSelecionado] = useState<{ preco: number; categoria: string } | null>(null);
 
     useEffect(() => {
         async function fetchProdutos() {
@@ -33,15 +33,13 @@ export default function NewStockPage() {
         { name: 'quantidade', label: 'Quantidade', type: 'number' as const, required: true },
     ];
 
-    const handleSubmit = async (data: Record<string, any>) => {
+    const handleSubmit = async (data: FormValues) => {
         try {
             const produto = produtoMap[data.produto_nome];
-            
+
             const payload = {
+                id_produto: produto.id,
                 quantidade: data.quantidade,
-                produtos: {
-                    connect: { id: produto.id }
-                }
             };
 
             const res = await fetch('/api/stock', {
@@ -55,8 +53,8 @@ export default function NewStockPage() {
             if (!res.ok) throw new Error(result.error);
 
             window.history.back();
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     }
 

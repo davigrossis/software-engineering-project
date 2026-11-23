@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+
+export type FormValues = Record<string, string | number>;
 
 interface FieldConfig {
     name: string;
@@ -13,24 +15,23 @@ interface FieldConfig {
 interface GenericFormProps {
     mode: 'edit' | 'add';
     fields: FieldConfig[];
-    initialData?: Record<string, any>;
-    onSubmit: (data: Record<string, any>) => void;
+    initialData?: FormValues;
+    onSubmit: (data: FormValues) => void;
     onDelete?: () => void;
     onCancel?: () => void;
 }
 
 export default function GenericForm({ mode, fields, initialData = {}, onSubmit, onDelete, onCancel }: GenericFormProps) {
-    const [formData, setFormData] = useState<Record<string, any>>({});
-
-    useEffect(() => {
-        const initial: Record<string, any> = {};
+    // Inicializador preguiçoso: roda uma única vez, na montagem do componente
+    const [formData, setFormData] = useState<FormValues>(() => {
+        const initial: FormValues = {};
         fields.forEach(field => {
             initial[field.name] = initialData[field.name] || (field.type === 'number' ? 0 : '');
         });
-        setFormData(initial);
-    }, []); // Run only once on mount
+        return initial;
+    });
 
-    const handleChange = (name: string, value: any) => {
+    const handleChange = (name: string, value: string | number) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 

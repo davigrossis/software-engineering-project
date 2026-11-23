@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, parseId, pickFields, requireFields, ValidationError } from '@/lib/api';
+
+const NOT_FOUND = 'Estoque não encontrado';
 
 export async function GET(
   request: Request,
@@ -8,24 +11,17 @@ export async function GET(
   try {
     const { id } = await params;
     const estoque = await prisma.estoque.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       include: { produtos: true },
     });
 
     if (!estoque) {
-      return NextResponse.json(
-        { error: 'Estoque não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json(estoque);
   } catch (error) {
-    console.error('Erro ao buscar estoque:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar estoque' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar estoque', NOT_FOUND);
   }
 }
 
@@ -35,27 +31,20 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const data = await request.json();
+    const data = pickFields(await request.json(), { quantidade: 'number' });
+    requireFields(data, ['quantidade']);
+    if ((data.quantidade as number) < 0) {
+      throw new ValidationError('A quantidade não pode ser negativa');
+    }
+
     const estoque = await prisma.estoque.update({
-      where: { id: parseInt(id) },
-      data: { quantidade: data.quantidade },
+      where: { id: parseId(id) },
+      data: { quantidade: data.quantidade as number },
     });
 
     return NextResponse.json(estoque);
-  } catch (error: any) {
-    console.error('Erro ao atualizar estoque:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Estoque não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao atualizar estoque' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao atualizar estoque', NOT_FOUND);
   }
 }
 
@@ -66,26 +55,14 @@ export async function DELETE(
   try {
     const { id } = await params;
     await prisma.estoque.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     return NextResponse.json(
       { message: 'Estoque excluído com sucesso' },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error('Erro ao deletar estoque:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Estoque não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao deletar estoque' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao deletar estoque', NOT_FOUND);
   }
 }

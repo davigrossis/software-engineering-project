@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, pickFields, requireFields, ValidationError } from '@/lib/api';
 
 export async function GET() {
   try {
@@ -15,26 +16,42 @@ export async function GET() {
         id: 'desc'
       }
     });
-    
+
     return NextResponse.json(estoques);
   } catch (error) {
-    console.error('Erro ao buscar estoques:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar estoques' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar estoques');
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const estoque = await prisma.estoque.create({ data });
+    const data = pickFields(await request.json(), { id_produto: 'int', quantidade: 'number' });
+    requireFields(data, ['id_produto', 'quantidade']);
+    const idProduto = data.id_produto as number;
+    const quantidade = data.quantidade as number;
+    if (quantidade < 0) throw new ValidationError('A quantidade não pode ser negativa');
+
+    const estoque = await prisma.$transaction(async (tx) => {
+      const produto = await tx.produto.findUnique({ where: { id: idProduto } });
+      if (!produto) throw new ValidationError(`Produto com ID ${idProduto} não encontrado`);
+      if (produto.id_estoque) {
+        throw new ValidationError(`O produto "${produto.nome}" já possui estoque cadastrado`);
+      }
+
+      // Copia os dados do produto para o estoque e faz o vínculo
+      return tx.estoque.create({
+        data: {
+          nome: produto.nome,
+          categoria: produto.categoria,
+          preco: produto.preco,
+          quantidade,
+          produtos: { connect: { id: produto.id } },
+        },
+      });
+    });
+
     return NextResponse.json(estoque, { status: 201 });
-  } catch (error: unknown) {
-    console.error('Erro ao criar estoque:', error);
-    const err = error as { code?: string; message?: string };
-    const status = err.code === 'P2002' ? 409 : 500;
-    return NextResponse.json({ error: err.message }, { status });
+  } catch (error) {
+    return handleError(error, 'Erro ao criar estoque');
   }
 }

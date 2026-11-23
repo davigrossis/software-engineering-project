@@ -1,6 +1,7 @@
 'use client';
 
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
 
 export default function NewProductPage() {
     const handleSubmit = async (e: React.FormEvent) => {
@@ -27,8 +28,8 @@ export default function NewProductPage() {
             if (!res.ok) throw new Error(result.error);
 
             window.history.back();
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

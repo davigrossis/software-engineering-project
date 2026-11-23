@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# COOPAF - Sistema de Gestão
 
-## Getting Started
+Aplicação web para gestão de uma cooperativa: clientes, fornecedores (cooperados), produtos,
+estoque, aquisições (compras de fornecedores) e pedidos (vendas para clientes).
 
-First, run the development server:
+## Stack
+
+- [Next.js 16](https://nextjs.org) (App Router) + React 19 + TypeScript
+- Tailwind CSS 4
+- [Prisma 7](https://www.prisma.io) com PostgreSQL (`@prisma/adapter-pg`)
+
+## Como rodar
+
+Pré-requisitos: Node.js 20+ e um banco PostgreSQL.
 
 ```bash
+npm install
+cp .env.example .env          # preencha DATABASE_URL
+npx prisma migrate dev        # aplica as migrations e gera o cliente Prisma
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Para popular o banco com dados de exemplo: `npx tsx script.ts`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Estrutura
 
-## Learn More
+```
+app/
+  page.tsx                      Dashboard
+  <entidade>/page.tsx           Listagem
+  <entidade>/new/page.tsx       Cadastro
+  <entidade>/manage/[id]/       Edição / exclusão
+  api/<entidade>/route.ts       GET (lista) / POST
+  api/<entidade>/[id]/route.ts  GET / PUT / DELETE
+components/                     Tabela, formulário genérico, header e navbar
+lib/
+  prisma.ts                     Instância do PrismaClient
+  api.ts                        Validação de entrada e tratamento de erros das rotas
+  fields.ts                     Campos aceitos por cada entidade nas rotas
+  pedidos.ts                    Regras de itens do pedido e baixa de estoque
+prisma/                         Schema e migrations
+```
 
-To learn more about Next.js, take a look at the following resources:
+Entidades (`/api/...`): `customers`, `suppliers`, `products`, `stock`, `acquisitions`, `orders`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Regras de negócio
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Aquisição** (`POST /api/acquisitions`): registra a compra de um produto de um fornecedor e
+  soma a quantidade ao estoque do produto (criando o estoque se ainda não existir).
+  Um produto pode ter várias aquisições (histórico preservado).
+- **Pedido** (`POST/PUT/DELETE /api/orders`): os itens do carrinho são gravados em `ItemPedido`
+  e a quantidade é baixada do estoque. O pedido é recusado se algum produto não tiver estoque
+  suficiente. Ao editar, os itens antigos são devolvidos ao estoque antes de aplicar os novos;
+  ao excluir, todo o estoque do pedido é devolvido. O total é calculado no servidor
+  (soma dos itens com o preço cadastrado do produto, menos o desconto).
+- **Produto**: ao editar nome, categoria ou preço, os mesmos campos são atualizados no estoque
+  vinculado. Um produto que já aparece em pedidos não pode ser excluído.
+- As rotas de escrita aceitam apenas os campos conhecidos de cada entidade
+  (ver `lib/fields.ts`) e respondem `400` para dados inválidos, `404` para registro
+  inexistente e `409` para conflitos (duplicidade ou vínculos).
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Comando         | Descrição                    |
+| --------------- | ---------------------------- |
+| `npm run dev`   | Servidor de desenvolvimento  |
+| `npm run build` | Build de produção            |
+| `npm run start` | Servidor de produção         |
+| `npm run lint`  | ESLint                       |

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import SetHeader from '@/components/header/SetHeader';
-import GenericForm from '@/components/form/GenericForm';
-import { useEffect } from 'react';
+import { errorMessage } from '@/lib/errors';
 
 interface Produto {
     id: number;
@@ -31,7 +30,6 @@ export default function NewOrderPage() {
                 const res = await fetch('/api/customers');
                 if (!res.ok) throw new Error('Erro ao buscar clientes');
                 const data = await res.json();
-                console.log('Clientes carregados:', data);
                 setClientes(data);
             } catch (error) {
                 console.error('Erro ao buscar clientes:', error);
@@ -56,22 +54,12 @@ export default function NewOrderPage() {
         fetchProdutos();
     }, []);
 
-    console.log('Estado clientes:', clientes);
-
     const clienteOptions = clientes.length > 0 ? clientes.map(c => c.instituicao) : [];
     const clienteMap = clientes.reduce((acc, c) => {
         acc[c.instituicao] = c.id;
         return acc;
     }, {} as Record<string, number>);
 
-    console.log('Options:', clienteOptions);
-
-    const fields = [
-        { name: 'codigo_pedido', label: 'Código do Pedido', type: 'text' as const, required: true },
-        { name: 'cliente_nome', label: 'Cliente', type: 'select' as const, options: clienteOptions, required: true },
-        { name: 'status', label: 'Status', type: 'select' as const, options: ['Pendente', 'Aprovado', 'Cancelado'], required: true },
-        { name: 'preco', label: 'Preço', type: 'number' as const, required: true },
-    ];
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -130,13 +118,19 @@ export default function NewOrderPage() {
 
     const totalPrice = cart.reduce((sum, item) => sum + item.product.preco * item.quantity, 0);
 
-    const handleSubmit = async (data: Record<string, any>) => {
+    const handleSubmit = async () => {
         try {
             const payload = {
-                codigo_pedido: data.codigo_pedido,
-                id_cliente: clienteMap[data.cliente_nome],
-                status: data.status,
-                preco: parseFloat(data.preco)
+                codigo_pedido: codigoPedido,
+                id_cliente: clienteMap[cliente],
+                status,
+                ...(data ? { data } : {}),
+                desconto,
+                preco: totalPrice - desconto,
+                itens: cart.map(item => ({
+                    id_produto: item.product.id,
+                    quantidade: item.quantity,
+                })),
             };
 
             const res = await fetch('/api/orders', {
@@ -149,20 +143,13 @@ export default function NewOrderPage() {
 
             if (!res.ok) throw new Error(result.error);
 
+            setIsModalOpen(false);
             window.history.back();
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            // Mantém o modal aberto para o usuário corrigir (ex.: estoque insuficiente)
+            alert(`Erro: ${errorMessage(error)}`);
         }
     }
-
-    const cancel = () => {
-        window.history.back();
-    };
-
-    const handleCancel = () => {
-        console.log('Cancelar');
-        // Aqui você pode redirecionar ou algo
-    };
 
     return (
         <section>
@@ -356,12 +343,7 @@ export default function NewOrderPage() {
                         </div>
                         <div className="flex gap-4 mt-4">
                             <button
-                                onClick={() => {
-                                    const finalPrice = totalPrice - desconto;
-                                    handleSubmit({ codigo_pedido: codigoPedido, cliente_nome: cliente, status: status, preco: finalPrice });
-                                    setIsModalOpen(false);
-                                    // Reset states or redirect
-                                }}
+                                onClick={handleSubmit}
                                 className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                             >
                                 Confirmar Pedido

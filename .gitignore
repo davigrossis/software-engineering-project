@@ -1,0 +1,46 @@
+# dependências
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testes
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# build
+/build
+
+# diversos
+.DS_Store
+*.pem
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# variáveis de ambiente (contém DATABASE_URL)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# cliente Prisma gerado (recriado com `npx prisma generate`)
+/app/generated/prisma
+
+# backups do banco (contêm dados reais)
+/backups

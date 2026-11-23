@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
 
 // Funções de formatação e validação
 const formatCNPJ = (value: string) => {
@@ -75,8 +76,8 @@ export default function NewCustomerPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/customers');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

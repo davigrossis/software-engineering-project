@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
 
 interface Produto {
     id: number;
@@ -152,7 +153,6 @@ export default function ManageOrderPage() {
                 itens: cart.map(item => ({
                     id_produto: item.product.id,
                     quantidade: item.quantity,
-                    preco_unitario: item.product.preco
                 }))
             };
 
@@ -162,11 +162,11 @@ export default function ManageOrderPage() {
                 body: JSON.stringify(payload),
             });
 
-            if (!res.ok) throw new Error('Erro ao atualizar');
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Erro ao atualizar');
             router.back();
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : 'Erro desconhecido';
-            console.log(`Erro: ${message}`);
+            alert(`Erro: ${errorMessage(error)}`);
         }
     };
 

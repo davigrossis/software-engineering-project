@@ -1,5 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, parseId, pickFields } from '@/lib/api';
+import type { Prisma } from '@/app/generated/prisma';
+
+const NOT_FOUND = 'Aquisição não encontrada';
+
+const AQUISICAO_UPDATE_FIELDS = {
+  id_fornecedor: 'int',
+  id_produto: 'int',
+  quantidade: 'number',
+  preco: 'number', // preço unitário
+  desconto: 'number',
+  entrada: 'date',
+  observacoes: 'optionalString',
+} as const;
 
 export async function GET(
   request: Request,
@@ -8,9 +22,9 @@ export async function GET(
   try {
     const { id } = await params;
     const aquisicao = await prisma.aquisicao.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       include: {
-        produtos: {
+        produto: {
           select: {
             id: true,
             nome: true,
@@ -28,51 +42,14 @@ export async function GET(
     });
 
     if (!aquisicao) {
-      return NextResponse.json(
-        { error: 'Aquisição não encontrada' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json(aquisicao);
   } catch (error) {
-    console.error('Erro ao buscar aquisição:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar aquisição' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar aquisição', NOT_FOUND);
   }
 }
-
-// export async function PUT(
-//   request: Request,
-//   { params }: { params: Promise<{ id: string }> }
-// ) {
-//   try {
-//     const { id } = await params;
-//     const data = await request.json();
-//     const aquisicao = await prisma.aquisicao.update({
-//       where: { id: parseInt(id) },
-//       data,
-//     });
-
-//     return NextResponse.json(aquisicao);
-//   } catch (error: any) {
-//     console.error('Erro ao atualizar aquisição:', error);
-    
-//     if (error.code === 'P2025') {
-//       return NextResponse.json(
-//         { error: 'Aquisição não encontrada' },
-//         { status: 404 }
-//       );
-//     }
-
-//     return NextResponse.json(
-//       { error: 'Erro ao atualizar aquisição' },
-//       { status: 500 }
-//     );
-//   }
-// }
 
 export async function PUT(
   request: Request,
@@ -80,33 +57,18 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const data = await request.json();
+    const data = pickFields(await request.json(), AQUISICAO_UPDATE_FIELDS);
 
     const aquisicao = await prisma.aquisicao.update({
-      where: { id: parseInt(id) },
-      data: {
-        id_fornecedor: data.id_fornecedor,
-        quantidade: data.quantidade,
-        preco: data.preco,
-        desconto: data.desconto,
-        entrada: new Date(data.entrada),
-        observacoes: data.observacoes,
-        produtos: {
-          set: [{ id: data.produtoId }],
-        },
-      },
+      where: { id: parseId(id) },
+      data: data as Prisma.AquisicaoUncheckedUpdateInput,
     });
 
     return NextResponse.json(aquisicao);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: 'Erro ao atualizar aquisição' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao atualizar aquisição', NOT_FOUND);
   }
 }
-
 
 export async function DELETE(
   request: Request,
@@ -115,26 +77,14 @@ export async function DELETE(
   try {
     const { id } = await params;
     await prisma.aquisicao.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     return NextResponse.json(
       { message: 'Aquisição excluída com sucesso' },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error('Erro ao deletar aquisição:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Aquisição não encontrada' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao deletar aquisição' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao deletar aquisição', NOT_FOUND);
   }
 }

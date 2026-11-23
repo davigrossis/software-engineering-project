@@ -1,6 +1,7 @@
 'use client';
 
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
 import { useEffect, useState } from 'react';
 
 interface Produto {
@@ -94,8 +95,6 @@ export default function NewAcquisitionPage() {
                 observacoes: observacoes,
             };
 
-            console.log("📤 Enviando payload:", payload);
-
             const res = await fetch('/api/acquisitions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -103,20 +102,15 @@ export default function NewAcquisitionPage() {
             });
 
             const result = await res.json();
-            console.log("📥 Resposta do servidor:", result);
 
             if (!res.ok) {
                 const errorMsg = result.details || result.error || `Erro ${res.status}`;
                 throw new Error(errorMsg);
             }
 
-            // Sucesso - redirecionar
-            console.log('Aquisição registrada com sucesso!');
             window.location.href = '/acquisitions';
-
-        } catch (error: any) {
-            console.error('❌ Erro completo:', error);
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

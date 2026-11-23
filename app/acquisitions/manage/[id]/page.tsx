@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
 
 interface Produto {
     id: number;
@@ -24,7 +25,7 @@ interface Aquisicao {
     desconto: number;
     entrada: string;
     observacoes: string;
-    produtos: Produto[];
+    produto: Produto | null;
     fornecedor: Fornecedor;
 }
 
@@ -63,7 +64,7 @@ export default function ManageAcquisitionPage() {
                 setProdutos(produtosData);
 
                 // Set initial values
-                setSelectedProduto(aquisicaoData.produtos[0] || null);
+                setSelectedProduto(aquisicaoData.produto || null);
                 setQuantidade(aquisicaoData.quantidade);
                 setDesconto(aquisicaoData.desconto || 0);
                 setEntrada(aquisicaoData.entrada.split('T')[0]); // date part
@@ -88,14 +89,16 @@ export default function ManageAcquisitionPage() {
         if (!selectedProduto || !aquisicao) return;
 
         try {
+            const form = e.currentTarget as HTMLFormElement;
+            const fornecedorSelect = form.elements.namedItem('fornecedor') as HTMLSelectElement;
             const payload = {
-                id_fornecedor: Number((e.target as any).fornecedor.value),
+                id_fornecedor: Number(fornecedorSelect.value),
+                id_produto: selectedProduto.id,
                 quantidade,
-                preco: total,
+                preco: selectedProduto.preco, // preço UNITÁRIO (antes era enviado o total)
                 desconto,
                 entrada,
                 observacoes,
-                produtoId: selectedProduto.id,
             };
 
             const res = await fetch(`/api/acquisitions/${id}`, {
@@ -109,8 +112,8 @@ export default function ManageAcquisitionPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/acquisitions');
-        } catch (error: any) {
-            console.error(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 
@@ -125,8 +128,8 @@ export default function ManageAcquisitionPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/acquisitions');
-        } catch (error: any) {
-           console.error(error);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

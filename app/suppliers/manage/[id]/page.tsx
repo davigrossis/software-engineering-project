@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
 
 const formatCPF = (value: string) => {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -23,7 +24,7 @@ export default function ManageSupplierPage() {
     const params = useParams();
     const router = useRouter();
     const id = params?.id as string;
-    const [fornecedor, setFornecedor] = useState<any>(null);
+    const [fornecedor, setFornecedor] = useState<{ id: number; nome: string } | null>(null);
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [cpf, setCpf] = useState('');
@@ -97,8 +98,8 @@ export default function ManageSupplierPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/suppliers');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 
@@ -113,8 +114,8 @@ export default function ManageSupplierPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/suppliers');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 

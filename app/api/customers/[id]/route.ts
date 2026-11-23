@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { handleError, parseId, pickFields } from '@/lib/api';
+import { CLIENTE_FIELDS } from '@/lib/fields';
+
+const NOT_FOUND = 'Cliente não encontrado';
 
 export async function GET(
   request: Request,
@@ -8,23 +12,16 @@ export async function GET(
   try {
     const { id } = await params;
     const cliente = await prisma.cliente.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     if (!cliente) {
-      return NextResponse.json(
-        { error: 'Cliente não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: NOT_FOUND }, { status: 404 });
     }
 
     return NextResponse.json(cliente);
   } catch (error) {
-    console.error('Erro ao buscar cliente:', error);
-    return NextResponse.json(
-      { error: 'Erro ao buscar cliente' },
-      { status: 500 }
-    );
+    return handleError(error, 'Erro ao buscar cliente', NOT_FOUND);
   }
 }
 
@@ -34,27 +31,15 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const data = await request.json();
+    const data = pickFields(await request.json(), CLIENTE_FIELDS);
     const cliente = await prisma.cliente.update({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
       data,
     });
 
     return NextResponse.json(cliente);
-  } catch (error: any) {
-    console.error('Erro ao atualizar cliente:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Cliente não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao atualizar cliente' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao atualizar cliente', NOT_FOUND);
   }
 }
 
@@ -65,26 +50,14 @@ export async function DELETE(
   try {
     const { id } = await params;
     await prisma.cliente.delete({
-      where: { id: parseInt(id) },
+      where: { id: parseId(id) },
     });
 
     return NextResponse.json(
       { message: 'Cliente excluído com sucesso' },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error('Erro ao deletar cliente:', error);
-    
-    if (error.code === 'P2025') {
-      return NextResponse.json(
-        { error: 'Cliente não encontrado' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Erro ao deletar cliente' },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleError(error, 'Erro ao deletar cliente', NOT_FOUND);
   }
 }

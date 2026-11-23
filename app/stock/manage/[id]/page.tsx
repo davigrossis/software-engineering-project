@@ -3,12 +3,19 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SetHeader from '@/components/header/SetHeader';
+import { errorMessage } from '@/lib/errors';
+
+interface Estoque {
+    id: number;
+    quantidade: number;
+    produtos: { id: number; nome: string }[];
+}
 
 export default function ManageStockPage() {
     const params = useParams();
     const router = useRouter();
     const id = params?.id as string;
-    const [estoque, setEstoque] = useState<any>(null);
+    const [estoque, setEstoque] = useState<Estoque | null>(null);
     const [quantidade, setQuantidade] = useState<number>(0);
 
     useEffect(() => {
@@ -53,8 +60,8 @@ export default function ManageStockPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/stock');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 
@@ -69,8 +76,8 @@ export default function ManageStockPage() {
             if (!res.ok) throw new Error(result.error);
 
             router.push('/stock');
-        } catch (error: any) {
-            console.log(`Erro: ${error.message}`);
+        } catch (error: unknown) {
+            console.error(`Erro: ${errorMessage(error)}`);
         }
     };
 
