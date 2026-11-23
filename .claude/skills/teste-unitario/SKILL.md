@@ -15,25 +15,10 @@ Neste projeto as regras de negócio que podem ser testadas assim ficam em `lib/`
 
 As rotas `app/api/**` falam com o banco: elas são assunto de **teste de integração**, não desta skill.
 
-## Primeira vez (se não existir `vitest.config.mts`)
-A configuração é feita **uma única vez, por uma pessoa** (a issue da classe Pedido). Se o arquivo não existir,
-confira se ela já foi feita na `main` (`git pull`) antes de configurar, para evitar conflito em `package.json`.
-
-1. `npm i -D vitest@5.0.1`
-2. Criar `vitest.config.mts` na raiz:
-   ```ts
-   import { fileURLToPath } from 'node:url';
-   import { defineConfig } from 'vitest/config';
-
-   export default defineConfig({
-     resolve: { alias: { '@': fileURLToPath(new URL('./', import.meta.url)) } },
-     test: { globals: true, environment: 'node', include: ['lib/**/*.test.ts'] },
-   });
-   ```
-3. `package.json` → em `scripts`, adicionar `"test": "vitest run"`.
-4. `tsconfig.json` → em `compilerOptions`, adicionar `"types": ["node", "vitest/globals"]`
-   (o `"node"` é obrigatório: sem ele o TypeScript deixa de carregar os tipos do Node e o `next build` quebra).
-5. Conferir: `npm test` (sem testes ainda, use `npx vitest run --passWithNoTests`) e `npm run build`.
+## Configuração (já feita)
+O Vitest 5 já está configurado no projeto: `vitest.config.mts`, scripts `npm test` / `npm run test:watch`
+e `"types": ["node", "vitest/globals"]` no `tsconfig.json`. **Não altere essa configuração** nem o
+`package.json` nas issues de teste — se algo faltar, avise o dono do repositório (@davigrossis).
 
 ## Passos
 1. Veja na tabela abaixo as regras da classe `$ARGUMENTS` e confira no código se ainda valem.
