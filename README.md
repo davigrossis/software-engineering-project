@@ -71,6 +71,8 @@ Entidades (`/api/...`): `customers`, `suppliers`, `products`, `stock`, `acquisit
 | `npm run lint`             | ESLint                                             |
 | `npm test`                 | Testes de unidade (`lib/**/*.test.ts`)             |
 | `npm run test:integracao`  | Testes de integração (`tests/integracao/`, usa o banco do `.env.test`) |
+| `npm run test:cobertura`   | Testes de unidade com relatório de cobertura (`coverage/unidade/`) |
+| `npm run test:integracao:cobertura` | Testes de integração com relatório de cobertura (`coverage/integracao/`) |
 
 ## Testes
 
@@ -86,6 +88,9 @@ verificam) estão em [`docs/aceitacao.md`](docs/aceitacao.md).
 | Sistema | `tests/sistema/sistema.mjs` | servidor rodando + API + banco, via HTTP | `node tests/sistema/sistema.mjs` |
 
 Todos seguem o padrão **AAA** (Arrange, Act, Assert).
+
+**Cobertura:** `npm run test:cobertura` e `npm run test:integracao:cobertura` medem a cobertura de comandos e
+branches de `lib/` e `app/api/`. O relatório HTML fica em `coverage/<suíte>/lcov-report/index.html`.
 
 ### Unidade
 
@@ -142,13 +147,30 @@ O workflow `.github/workflows/ci.yml` (GitHub Actions) roda em **todo pull reque
 Um push novo cancela a execução anterior do mesmo PR/branch. Ele usa Ubuntu, Node 22 e um container
 PostgreSQL 16 descartável como banco de teste.
 
-Passos, em ordem (qualquer falha interrompe a execução):
+Job **"Lint, tipos, testes e build"** (obrigatório para o merge na `main`). Passos, em ordem, e qualquer falha
+interrompe a execução:
 
 1. Baixar o código e instalar as dependências (`npm ci`)
 2. Gerar o cliente Prisma (`npx prisma generate`)
 3. Lint (`npm run lint`)
 4. Checagem de tipos (`npx tsc --noEmit`)
-5. Testes de unidade (`npm test`)
+5. Testes de unidade com cobertura (`npm run test:cobertura`)
 6. Criar o `.env.test` apontando para o Postgres do CI e aplicar as migrations (`npx prisma migrate deploy`)
-7. Testes de integração (`npm run test:integracao`)
-8. Build (`npm run build`)
+7. Testes de integração com cobertura (`npm run test:integracao:cobertura`)
+8. Resumo da cobertura na página do job e relatório salvo como artefato `cobertura`
+9. Build (`npm run build`)
+
+Job **"SonarCloud (análise estática e cobertura)"**: depois do job acima, envia a análise e a cobertura ao
+SonarCloud (`sonar-project.properties`). Só roda quando o secret `SONAR_TOKEN` está configurado.
+
+O workflow `.github/workflows/commitlint.yml` valida, em todo pull request, se as mensagens de commit seguem o
+**Conventional Commits** (`commitlint.config.mjs`).
+
+## Contribuindo
+
+1. Crie uma issue para a tarefa e uma branch a partir dela (`gh issue develop <número> --checkout`).
+2. Faça commits no padrão Conventional Commits, em português: `<tipo>: <descrição>`.
+   Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+   Ex.: `fix: trata erro ao carregar produtos`.
+3. Abra um pull request com `Closes #<número>`. A `main` é protegida: o merge só é possível por PR, com o CI
+   verde.
