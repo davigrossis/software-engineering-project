@@ -76,6 +76,8 @@ Entidades (`/api/...`): `customers`, `suppliers`, `products`, `stock`, `acquisit
 
 O projeto tem testes em três níveis (pirâmide de testes). Como eles aplicam os temas da disciplina está em
 [`docs/engenharia-de-software.md`](docs/engenharia-de-software.md).
+Os testes de aceitação (histórias de usuário, critérios de aceite e a rastreabilidade até os testes que os
+verificam) estão em [`docs/aceitacao.md`](docs/aceitacao.md).
 
 | Nível | Onde | O que usa | Comando |
 | --- | --- | --- | --- |

@@ -17,6 +17,10 @@ no repositório.
 A base tem mais testes porque eles são rápidos e apontam exatamente onde está o erro. Subindo a pirâmide, os
 testes ficam mais lentos, mas cobrem a comunicação entre as partes, que a unidade não alcança.
 
+Os **testes de aceitação** (histórias de usuário com critérios Dado / Quando / Então) estão em
+[`aceitacao.md`](aceitacao.md): cada critério é verificado pelos testes de sistema e de integração, ligados por uma
+matriz de rastreabilidade.
+
 Comandos: `npm test` (unidade), `npm run test:integracao` (integração) e `node tests/sistema/sistema.mjs`
 (sistema, com o app rodando).
 
