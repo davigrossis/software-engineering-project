@@ -100,3 +100,35 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  sonarcloud:
+    name: SonarCloud (análise estática e cobertura)
+    needs: verificar
+    runs-on: ubuntu-latest
+
+    env:
+      # Vazio enquanto o secret não for cadastrado (e em PRs vindos de forks): os passos são pulados
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Avisar que o SONAR_TOKEN não está configurado
+        if: ${{ env.SONAR_TOKEN == '' }}
+        run: echo "::notice::SONAR_TOKEN não configurado; a análise do SonarCloud pelo CI foi pulada."
+
+      - name: Baixar o código (histórico completo, para o Sonar saber o que é código novo)
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Baixar o relatório de cobertura
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: actions/download-artifact@v8
+        with:
+          name: cobertura
+          path: coverage/
+
+      - name: Análise do SonarCloud
+        if: ${{ env.SONAR_TOKEN != '' }}
+        # v8.4.1 fixada pelo SHA do commit (configuração em sonar-project.properties)
+        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65
