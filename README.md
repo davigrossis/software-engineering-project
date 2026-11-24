@@ -174,3 +174,5 @@ O workflow `.github/workflows/commitlint.yml` valida, em todo pull request, se a
    Ex.: `fix: trata erro ao carregar produtos`.
 3. Abra um pull request com `Closes #<número>`. A `main` é protegida: o merge só é possível por PR, com o CI
    verde.
+
+<!-- Demonstração do Commitlint: este PR não deve ser mergeado. -->
