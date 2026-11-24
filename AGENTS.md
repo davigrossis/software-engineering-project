@@ -52,15 +52,21 @@ Vitest 5.
 | Lint | `npm run lint` |
 | Checagem de tipos | `npx tsc --noEmit` |
 | Testes de unidade | `npm test` (ou `npx vitest run lib/<arquivo>.test.ts`) |
+| Testes de integração | `npm run test:integracao` (usa somente o banco do `.env.test`) |
 | Teste de sistema | `node tests/sistema/sistema.mjs` (exige o app rodando e um banco de teste) |
 | Build | `npm run build` |
 
 ## Testes
 - **Unidade:** um arquivo por classe em `lib/<classe>.test.ts`, padrão **AAA** (`// Arrange`, `// Act`,
   `// Assert`), sem banco e sem rede. Siga a skill [`.claude/skills/teste-unitario/SKILL.md`](.claude/skills/teste-unitario/SKILL.md).
+- **Integração:** um arquivo por classe em `tests/integracao/<classe>.test.ts`, padrão **AAA**, chamando as rotas
+  de `app/api/**` com Prisma e um banco PostgreSQL de teste reais. Rodam com `npm run test:integracao` e usam
+  **somente** o banco do `.env.test`, nunca o do `.env`. Siga a skill [`.claude/skills/teste-integracao/SKILL.md`](.claude/skills/teste-integracao/SKILL.md).
 - **Sistema:** `tests/sistema/sistema.mjs` testa servidor + API + banco e o tempo de resposta.
+- **CI:** `.github/workflows/ci.yml` (GitHub Actions) roda em todo pull request e push na `main`: lint, checagem
+  de tipos, testes de unidade, testes de integração (em um PostgreSQL descartável) e build.
 
 ## Definição de pronto
 Antes de dar uma tarefa como concluída, rode e confira que passam:
-`npm run lint` · `npx tsc --noEmit` · `npm test` · `npm run build`.
+`npm run lint` · `npx tsc --noEmit` · `npm test` · `npm run test:integracao` · `npm run build`.
 Reporte o resultado real de cada comando; se algo falhar ou não puder ser rodado, diga.
