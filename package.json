@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integracao": "vitest run --config vitest.integracao.config.mts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
