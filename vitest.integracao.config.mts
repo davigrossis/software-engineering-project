@@ -19,5 +19,13 @@ export default defineConfig({
     env: { DATABASE_URL: urlTeste }, // tem prioridade sobre o .env
     fileParallelism: false,          // um banco compartilhado: um arquivo por vez
     testTimeout: 20_000,
+    // Cobertura de comandos e branches: só com --coverage (npm run test:integracao:cobertura)
+    coverage: {
+      provider: 'v8',
+      include: ['lib/**/*.ts', 'app/api/**/*.ts'],
+      exclude: ['**/*.test.ts'],
+      reporter: ['text', 'lcov', 'json-summary'],
+      reportsDirectory: 'coverage/integracao',
+    },
   },
 });

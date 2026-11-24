@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:integracao": "vitest run --config vitest.integracao.config.mts"
+    "test:integracao": "vitest run --config vitest.integracao.config.mts",
+    "test:cobertura": "vitest run --coverage",
+    "test:integracao:cobertura": "vitest run --config vitest.integracao.config.mts --coverage"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
@@ -25,6 +27,7 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^5.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "prisma": "^7.2.0",

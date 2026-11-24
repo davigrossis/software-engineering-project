@@ -14,5 +14,13 @@ export default defineConfig({
     include: ['lib/**/*.test.ts'],
     // Não falha enquanto o time ainda não escreveu os testes
     passWithNoTests: true,
+    // Cobertura de comandos e branches: só com --coverage (npm run test:cobertura)
+    coverage: {
+      provider: 'v8',
+      include: ['lib/**/*.ts', 'app/api/**/*.ts'],
+      exclude: ['**/*.test.ts'],
+      reporter: ['text', 'lcov', 'json-summary'],
+      reportsDirectory: 'coverage/unidade',
+    },
   },
 });
