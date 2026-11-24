@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Revisão automática de PRs pelo CodeRabbit (gratuita para repositórios públicos).
+# Referência: https://docs.coderabbit.ai/reference/configuration
+language: pt-BR
+
+reviews:
+  # chill: foca no que importa; assertive: mais detalhado (e mais "chato")
+  profile: chill
+
+  # Resumo do PR na descrição, no lugar do marcador do template (.github/pull_request_template.md)
+  high_level_summary: true
+  high_level_summary_placeholder: '@coderabbitai summary'
+  high_level_summary_instructions: |
+    Escreva em português, em tópicos curtos: o que mudou e por quê.
+    Diga explicitamente se o PR altera regras de negócio (lib/pedidos.ts, lib/api.ts, lib/fields.ts,
+    app/api/**, prisma/schema.prisma) ou cria migrations; se não alterar, diga "Sem mudança em regras de negócio".
+
+  # Walkthrough (comentário com o passo a passo das mudanças)
+  changed_files_summary: true
+  sequence_diagrams: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    drafts: false # PRs em rascunho (ex.: demonstrações) não são revisados
+
+  # Arquivos fora da revisão (gerados ou sem valor de revisão)
+  path_filters:
+    - '!package-lock.json'
+    - '!app/generated/**'
+    - '!coverage/**'
+
+  # Orientações por caminho, seguindo as regras do AGENTS.md
+  path_instructions:
+    - path: '{lib/pedidos.ts,lib/api.ts,lib/fields.ts,app/api/**,prisma/schema.prisma}'
+      instructions: |
+        Arquivo de REGRA DE NEGÓCIO. Pelo AGENTS.md, só pode mudar com pedido explícito do dono do repositório.
+        Aponte qualquer mudança de comportamento (validação, campos aceitos, códigos HTTP, baixa/devolução
+        de estoque, cálculo do total) e peça a justificativa no PR. Rotas devem usar pickFields/requireFields/
+        handleError e nunca repassar o corpo da requisição direto ao Prisma.
+    - path: 'prisma/migrations/**'
+      instructions: |
+        Migrations existentes nunca podem ser editadas: toda mudança de schema deve vir em uma migration nova.
+        Aponte como erro qualquer alteração em uma migration que já existia.
+    - path: '{lib/**/*.test.ts,tests/**}'
+      instructions: |
+        Testes seguem o padrão AAA (comentários // Arrange, // Act, // Assert). Os de unidade não usam banco
+        nem rede; os de integração usam só o banco do .env.test. Aponte testes pulados (skip/only),
+        desabilitados ou apagados para deixar a execução verde.
+    - path: '**/*.{ts,tsx}'
+      instructions: |
+        TypeScript estrito: não usar any; em catch, usar unknown com errorMessage() de lib/errors.ts.
+        Textos da interface e mensagens de erro em português.
