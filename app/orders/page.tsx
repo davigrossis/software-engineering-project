@@ -31,7 +31,7 @@ export default function OrdersPage() {
             }
         }
 
-        fetchPedidos();
+        void fetchPedidos();
     }, []);
 
     const headers = ['Código do Pedido', 'Cliente', 'Data', 'Status', 'Preço'];

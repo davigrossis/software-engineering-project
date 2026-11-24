@@ -38,7 +38,7 @@ export default function ManageStockPage() {
                 setEstoque(null);
             }
         }
-        fetchEstoque();
+        void fetchEstoque();
     }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {

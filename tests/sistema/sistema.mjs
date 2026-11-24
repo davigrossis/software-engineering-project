@@ -218,7 +218,7 @@ async function main() {
   const ordenados = tempos.map(t => t.ms).sort((a, b) => a - b);
   const media = ordenados.reduce((s, ms) => s + ms, 0) / ordenados.length;
   const p95 = ordenados[Math.min(ordenados.length - 1, Math.floor(ordenados.length * 0.95))];
-  const maisLenta = tempos.reduce((a, b) => (b.ms > a.ms ? b : a));
+  const maisLenta = tempos.reduce((a, b) => (b.ms > a.ms ? b : a), { rota: '-', ms: 0 });
   console.log(`  ${tempos.length} requisições · média ${media.toFixed(0)} ms · p95 ${p95.toFixed(0)} ms · `
     + `mais lenta ${maisLenta.ms.toFixed(0)} ms (${maisLenta.rota})`);
   const lentas = tempos.filter(t => t.ms > LIMITE_MS);

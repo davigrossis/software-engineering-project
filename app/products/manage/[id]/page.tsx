@@ -39,7 +39,7 @@ export default function ManageProductPage() {
                 setProduto(null);
             }
         }
-        fetchProduto();
+        void fetchProduto();
     }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {

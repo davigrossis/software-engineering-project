@@ -73,7 +73,7 @@ export default function ManageAcquisitionPage() {
                 console.error('Erro ao buscar dados:', error);
             }
         }
-        if (id) fetchData();
+        if (id) void fetchData();
     }, [id]);
 
     const handleProdutoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

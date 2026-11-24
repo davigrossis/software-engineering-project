@@ -27,7 +27,7 @@ export default function StockPage() {
             }
         }
 
-        fetchEstoques();
+        void fetchEstoques();
     }, []);
 
     const headers = ['Nome', 'Categoria', 'Quantidade', 'Preço(un)'];

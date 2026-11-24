@@ -65,7 +65,7 @@ export default function ManageSupplierPage() {
                 setFornecedor(null);
             }
         }
-        fetchFornecedor();
+        void fetchFornecedor();
     }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {

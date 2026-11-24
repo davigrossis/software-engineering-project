@@ -54,7 +54,7 @@ export default function ManageOrderPage() {
                 console.error('Erro ao carregar dados iniciais:', error);
             }
         }
-        fetchData();
+        void fetchData();
     }, []);
 
     // 2. Carregar o Pedido e preencher o Carrinho
@@ -94,7 +94,7 @@ export default function ManageOrderPage() {
                 console.error('Erro ao carregar pedido:', error);
             }
         }
-        fetchOrder();
+        void fetchOrder();
     }, [id, products, clientes]);
 
     // Mapeamentos

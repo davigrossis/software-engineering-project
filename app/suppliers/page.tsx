@@ -29,7 +29,7 @@ export default function SuppliersPage() {
             }
         }
 
-        fetchFornecedores();
+        void fetchFornecedores();
     }, []);
     
     const headers = ['Nome', 'Email', 'Telefone', 'Área de Atuação', 'Status'];
