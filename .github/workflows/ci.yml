@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancela execuções anteriores do mesmo PR/branch quando chega um push novo
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    name: Lint, tipos, testes e build
+    runs-on: ubuntu-latest
+
+    env:
+      # Banco descartável do container abaixo (credenciais só do CI, não são segredo)
+      DATABASE_URL: postgresql://coopaf:coopaf@localhost:5432/coopaf_teste
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: coopaf
+          POSTGRES_PASSWORD: coopaf
+          POSTGRES_DB: coopaf_teste
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U coopaf -d coopaf_teste"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node 22 (com cache do npm)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar cliente Prisma
+        # app/generated/prisma não está no git
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Checagem de tipos
+        run: npx tsc --noEmit
+
+      - name: Testes de unidade
+        run: npm test
+
+      - name: Criar .env.test apontando para o Postgres do CI
+        # vitest.integracao.config.mts lê a DATABASE_URL deste arquivo
+        run: echo "DATABASE_URL=$DATABASE_URL" > .env.test
+
+      - name: Aplicar migrations no banco de teste
+        run: npx prisma migrate deploy
+
+      - name: Testes de integração
+        run: npm run test:integracao
+
+      - name: Build
+        run: npm run build
