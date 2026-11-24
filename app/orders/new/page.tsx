@@ -35,7 +35,7 @@ export default function NewOrderPage() {
                 console.error('Erro ao buscar clientes:', error);
             }
         }
-        fetchClientes();
+        void fetchClientes();
     }, []);
 
     useEffect(() => {
@@ -51,7 +51,7 @@ export default function NewOrderPage() {
             }
         }
 
-        fetchProdutos();
+        void fetchProdutos();
     }, []);
 
     const clienteOptions = clientes.length > 0 ? clientes.map(c => c.instituicao) : [];

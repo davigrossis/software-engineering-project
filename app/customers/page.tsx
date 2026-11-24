@@ -28,7 +28,7 @@ export default function CustomersPage() {
             }
         }
 
-        fetchClientes();
+        void fetchClientes();
     }, []);
 
     const headers = ['Instituição', 'CNPJ', 'Telefone', 'Responsável'];

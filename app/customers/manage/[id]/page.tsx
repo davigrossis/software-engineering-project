@@ -87,7 +87,7 @@ export default function ManageCustomerPage() {
                 setCliente(null);
             }
         }
-        fetchCliente();
+        void fetchCliente();
     }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {

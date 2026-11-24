@@ -38,7 +38,7 @@ export default function AcquisitionsPage() {
       }
     }
 
-    fetchAquisicoes();
+    void fetchAquisicoes();
   }, []);
 
   const headers = ['Nome', 'Fornecedor', 'Entrada', 'Quantidade', 'Preço(un)'];

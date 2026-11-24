@@ -28,7 +28,7 @@ export default function ProductsPage() {
             }
         }
 
-        fetchProdutos();
+        void fetchProdutos();
     }, []);
 
 

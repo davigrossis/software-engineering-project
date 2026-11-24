@@ -19,7 +19,7 @@ export default function NewStockPage() {
                 console.error('Erro ao buscar produtos:', error);
             }
         }
-        fetchProdutos();
+        void fetchProdutos();
     }, []);
 
     const produtoOptions = produtos.map(p => p.nome);
