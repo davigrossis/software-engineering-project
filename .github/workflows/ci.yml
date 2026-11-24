@@ -60,8 +60,8 @@ jobs:
       - name: Checagem de tipos
         run: npx tsc --noEmit
 
-      - name: Testes de unidade
-        run: npm test
+      - name: Testes de unidade (com cobertura)
+        run: npm run test:cobertura
 
       - name: Criar .env.test apontando para o Postgres do CI
         # vitest.integracao.config.mts lê a DATABASE_URL deste arquivo
@@ -70,8 +70,33 @@ jobs:
       - name: Aplicar migrations no banco de teste
         run: npx prisma migrate deploy
 
-      - name: Testes de integração
-        run: npm run test:integracao
+      - name: Testes de integração (com cobertura)
+        run: npm run test:integracao:cobertura
+
+      - name: Resumo da cobertura no job
+        if: ${{ !cancelled() }}
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const linhas = ["## Cobertura de testes", "",
+              "| Suíte | Comandos | Branches | Funções | Linhas |", "| --- | --- | --- | --- | --- |"];
+            for (const suite of ["unidade", "integracao"]) {
+              const arquivo = `coverage/${suite}/coverage-summary.json`;
+              if (!fs.existsSync(arquivo)) continue;
+              const t = JSON.parse(fs.readFileSync(arquivo, "utf8")).total;
+              const pct = (m) => `${t[m].pct}% (${t[m].covered}/${t[m].total})`;
+              linhas.push(`| ${suite} | ${pct("statements")} | ${pct("branches")} | ${pct("functions")} | ${pct("lines")} |`);
+            }
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, linhas.join("\n") + "\n");
+          '
+
+      - name: Salvar relatório de cobertura
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: cobertura
+          path: coverage/
+          retention-days: 14
 
       - name: Build
         run: npm run build
