@@ -37,6 +37,8 @@ estoque e vendas para instituições. **Contexto completo** — propósito, obje
 - Rotas novas devem usar `pickFields`/`requireFields`/`handleError` (`lib/api.ts`) e um schema em `lib/fields.ts`;
   nunca repasse o corpo da requisição direto para o Prisma.
 - Textos da interface, mensagens de erro e commits em **português**.
+- Commits no padrão **Conventional Commits** (`<tipo>: <descrição>`, ex.: `fix: trata erro ao carregar produtos`).
+  O Commitlint valida todo PR (`commitlint.config.mjs`); um commit fora do padrão falha o check.
 - Rode testes de sistema apenas contra banco de desenvolvimento/teste, nunca de produção.
 
 ## Stack
