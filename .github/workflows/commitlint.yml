@@ -1,0 +1,42 @@
+name: Commitlint
+
+on:
+  pull_request:
+
+concurrency:
+  group: commitlint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  commitlint:
+    name: Mensagens de commit (Conventional Commits)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código (com o histórico do PR)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Instalar o Commitlint (só no CI, versão fixa, sem alterar o package.json)
+        run: >-
+          npm install --no-save --no-package-lock --ignore-scripts --prefix "$RUNNER_TEMP/commitlint"
+          @commitlint/cli@21.2.4 @commitlint/config-conventional@21.2.4
+
+      - name: Validar os commits do PR
+        # NODE_PATH permite que o commitlint.config.mjs encontre o @commitlint/config-conventional
+        env:
+          NODE_PATH: ${{ runner.temp }}/commitlint/node_modules
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          "$RUNNER_TEMP/commitlint/node_modules/.bin/commitlint"
+          --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
