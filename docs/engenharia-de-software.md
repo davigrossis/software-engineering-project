@@ -66,7 +66,8 @@ it('deve recusar id_cliente não numérico', () => {
 
 ### Fluxo de trabalho no GitHub
 
-- **Issues:** cada tarefa vira uma issue (ex.: #1 a #9, testes de unidade e de integração por classe).
+- **Issues:** cada tarefa vira uma issue (de #1 a #41, numeradas junto com os PRs; ex.: #1 a #9, testes de
+  unidade e de integração por classe).
 - **Uma branch por tarefa:** ex.: `7-testes-unitários-cliente`, `test/integracao-cadastros`,
   `ci/github-actions`.
 - **Pull requests:** as branches são integradas na `main` via pull request e merge, com revisão do dono do
@@ -76,8 +77,9 @@ it('deve recusar id_cliente não numérico', () => {
   `fix: trata as promises e o reduce apontados pelo SonarCloud (#26)`. O padrão é **validado automaticamente**
   pelo **Commitlint** (`commitlint.config.mjs` + workflow `.github/workflows/commitlint.yml`, PR #28): um PR
   com um commit fora do padrão (ex.: `Corrigi umas coisas`) falha no check.
-- **`main` protegida (ruleset `protect-main`):** só recebe mudanças por pull request (merge commit), com o check
-  de CI **"Lint, tipos, testes e build"** verde. Push direto, push forçado e exclusão da branch são bloqueados.
+- **`main` protegida (ruleset `protect-main`):** só recebe mudanças por pull request (merge commit), com os 2
+  checks obrigatórios verdes: **"Lint, tipos, testes e build"** e **"Mensagens de commit (Conventional
+  Commits)"**. Push direto, push forçado e exclusão da branch são bloqueados.
   Assim, nenhuma modificação entra na linha de base sem passar pelo controle.
 
 ### Itens de configuração versionados
@@ -128,8 +130,52 @@ bugs, vulnerabilidades, *code smells* (manutenibilidade), duplicação e complex
 | Duplicação | 12,6% (formulários de cadastro e edição repetidos) |
 | Linhas de código | 5.602 |
 
+Na análise atual da `main`, depois da manutenção corretiva (ver [Manutenção](#manutenção)):
+
+| Métrica | Valor |
+| --- | --- |
+| Bugs | 0 |
+| Vulnerabilidades | 5 |
+| *Code smells* | 72 |
+| Duplicação | 16,8% |
+| *Quality gate* | reprovado só pela cobertura do código novo, porque a interface não tem testes |
+
 O `sonar-project.properties` e o job **"SonarCloud (análise estática e cobertura)"** do CI (PR #30) permitem
 enviar também a cobertura ao Sonar, quando o secret `SONAR_TOKEN` está configurado.
+
+### Revisão de código (CodeRabbit)
+
+Cada PR é revisado automaticamente pelo **CodeRabbit**, configurado em `.coderabbit.yaml` (PR #36):
+
+- A revisão é feita em **pt-BR** e segue as regras do `AGENTS.md`, com orientações por caminho: aponta mudanças
+  em arquivos de regra de negócio, edição de migrations existentes, testes pulados ou fora do padrão AAA e uso
+  de `any`.
+- O **resumo do PR é gerado automaticamente**: o template (`.github/pull_request_template.md`) traz o marcador
+  `@coderabbitai summary`, que o CodeRabbit substitui pelo resumo do que mudou e por quê, dizendo se o PR
+  altera regras de negócio.
+
+### Entrega contínua (Vercel)
+
+O projeto está conectado à **Vercel**, que completa o CI com a entrega contínua (CD):
+
+- **Preview em cada PR:** cada pull request ganha um deploy de *Preview*, e o bot da Vercel comenta no PR o
+  link para testar a versão.
+- **Produção automática:** cada integração na `main` é publicada automaticamente em produção, em
+  <https://software-engineering-project-theta.vercel.app>.
+- **CI/CD encadeado:** como o ruleset `protect-main` só deixa integrar na `main` com os checks obrigatórios
+  verdes, só chega à produção o código que já passou pelo CI.
+- **Limitação:** o *Preview* e a produção usam o mesmo banco de dados, então testes feitos num *Preview*
+  alteram os dados de produção.
+
+### Demonstração
+
+Dois PRs foram abertos **de propósito** para mostrar os controles barrando mudanças fora do padrão (não devem
+ser integrados):
+
+- **PR #33 — barrado pelo Commitlint:** o commit `Corrigi umas coisas no README` não segue o Conventional
+  Commits; o check "Mensagens de commit (Conventional Commits)" falha e o ruleset bloqueia o merge.
+- **PR #34 — barrado pelo CI:** adiciona um teste com expectativa errada; o commit segue o padrão, mas o check
+  "Lint, tipos, testes e build" falha nos testes de unidade e o ruleset bloqueia o merge.
 
 ### Manutenção
 
