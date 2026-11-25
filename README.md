@@ -166,6 +166,23 @@ SonarCloud (`sonar-project.properties`). Só roda quando o secret `SONAR_TOKEN` 
 O workflow `.github/workflows/commitlint.yml` valida, em todo pull request, se as mensagens de commit seguem o
 **Conventional Commits** (`commitlint.config.mjs`).
 
+## Deploy contínuo (CD)
+
+O projeto está publicado na **Vercel**, integrada ao GitHub:
+
+- **Produção:** https://software-engineering-project-theta.vercel.app
+- **Preview:** todo pull request ganha um deploy próprio. O bot da Vercel comenta o link no PR, para testar a
+  mudança antes do merge.
+- **Production:** todo merge na `main` é publicado automaticamente.
+
+**CI/CD encadeado:** o ruleset `protect-main` só deixa entrar na `main` o que passou no CI (lint, tipos, testes e
+build), e a Vercel publica a `main`. Logo, só chega em produção o código que passou nos testes.
+
+> **Limitação:** os deploys de preview usam o **mesmo banco** da produção. Os dados criados ao testar um preview
+> aparecem na produção, e se um PR trouxer uma migration nova e o build da Vercel aplicar as migrations, ela é
+> aplicada nesse banco antes do merge. O check da Vercel não é obrigatório no ruleset, pelo mesmo motivo do Sonar:
+> é um serviço externo e não deve travar o merge se estiver fora do ar.
+
 ## Contribuindo
 
 1. Crie uma issue para a tarefa e uma branch a partir dela (`gh issue develop <número> --checkout`).
