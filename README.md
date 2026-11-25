@@ -3,11 +3,28 @@
 Aplicação web para gestão de uma cooperativa: clientes, fornecedores (cooperados), produtos,
 estoque, aquisições (compras de fornecedores) e pedidos (vendas para clientes).
 
+**Sistema no ar:** https://software-engineering-project-theta.vercel.app
+
+## Sobre o trabalho
+
+Trabalho da disciplina **DCC061 - Engenharia de Software** (UFJF), do Prof. Fabrício Martins Mendonça.
+Temas do grupo: **Testes de Software** e **Gerência de Configuração e Manutenção**.
+
+Integrantes: Bernardo Grijó Fontes, Davi Grossi Soares de Souza, Lucas Gonçalves Dahbar, Pedro Muniz Fagundes
+Netto Lau e Renato de Souza Nandes.
+
+- [`docs/engenharia-de-software.md`](docs/engenharia-de-software.md): como o projeto aplica os temas
+- [`docs/contexto.md`](docs/contexto.md): propósito, classes e fluxo do negócio
+- [`docs/aceitacao.md`](docs/aceitacao.md): histórias de usuário, critérios de aceite e rastreabilidade até os testes
+
 ## Stack
 
 - [Next.js 16](https://nextjs.org) (App Router) + React 19 + TypeScript
 - Tailwind CSS 4
 - [Prisma 7](https://www.prisma.io) com PostgreSQL (`@prisma/adapter-pg`)
+- [Vitest](https://vitest.dev) (+ `@vitest/coverage-v8` para a cobertura)
+- GitHub Actions (CI), [SonarCloud](https://sonarcloud.io) (análise estática), [CodeRabbit](https://coderabbit.ai)
+  (revisão de PR) e [Vercel](https://vercel.com) (deploy)
 
 ## Como rodar
 
@@ -166,22 +183,53 @@ SonarCloud (`sonar-project.properties`). Só roda quando o secret `SONAR_TOKEN` 
 O workflow `.github/workflows/commitlint.yml` valida, em todo pull request, se as mensagens de commit seguem o
 **Conventional Commits** (`commitlint.config.mjs`).
 
+### Proteção da `main` (ruleset `protect-main`)
+
+- Mudanças só entram por **pull request**, e o método de merge permitido é o **merge commit**.
+- Dois checks são **obrigatórios** para o merge:
+  - **Lint, tipos, testes e build** (`ci.yml`)
+  - **Mensagens de commit (Conventional Commits)** (`commitlint.yml`)
+- Não é permitido apagar a `main` nem fazer force-push nela.
+
+O SonarCloud e a Vercel não são checks obrigatórios (ver a limitação em [CD](#deploy-contínuo-cd)).
+
+## Qualidade e revisão de código
+
+- **SonarCloud:** recebe do CI a análise estática e a cobertura de testes. Painel:
+  https://sonarcloud.io/project/overview?id=davigrossis_software-engineering-project
+- **CodeRabbit:** revisa automaticamente cada pull request, configurado em `.coderabbit.yaml`. A revisão sai em
+  português (pt-BR), com orientações por caminho que seguem o `AGENTS.md` (regras de negócio, migrations, testes).
+  Ele escreve o **resumo do PR** no lugar do marcador `@coderabbitai summary` da descrição. Para conversar com
+  ele, mencione `@coderabbitai` em um comentário do PR.
+- **Template de PR:** `.github/pull_request_template.md` traz o `Closes #`, o resumo do CodeRabbit e o checklist
+  dos comandos rodados (lint, tipos, testes de unidade e integração, build).
+
 ## Deploy contínuo (CD)
 
 O projeto está publicado na **Vercel**, integrada ao GitHub:
 
-- **Produção:** https://software-engineering-project-theta.vercel.app
+- **Produção:** https://software-engineering-project-theta.vercel.app. Todo merge na `main` é publicado
+  automaticamente.
 - **Preview:** todo pull request ganha um deploy próprio. O bot da Vercel comenta o link no PR, para testar a
   mudança antes do merge.
-- **Production:** todo merge na `main` é publicado automaticamente.
 
-**CI/CD encadeado:** o ruleset `protect-main` só deixa entrar na `main` o que passou no CI (lint, tipos, testes e
-build), e a Vercel publica a `main`. Logo, só chega em produção o código que passou nos testes.
+**CI/CD encadeado:** o ruleset `protect-main` só deixa entrar na `main` o que passou nos checks obrigatórios
+(lint, tipos, testes e build, e mensagens de commit), e a Vercel publica a `main`. Logo, só chega em produção o
+código que passou nos testes.
 
 > **Limitação:** os deploys de preview usam o **mesmo banco** da produção. Os dados criados ao testar um preview
 > aparecem na produção, e se um PR trouxer uma migration nova e o build da Vercel aplicar as migrations, ela é
 > aplicada nesse banco antes do merge. O check da Vercel não é obrigatório no ruleset, pelo mesmo motivo do Sonar:
 > é um serviço externo e não deve travar o merge se estiver fora do ar.
+
+## Demonstração
+
+Dois pull requests ficam **abertos de propósito** para mostrar a proteção da `main` funcionando. Eles **não
+devem ser mergeados**:
+
+- [#33](https://github.com/davigrossis/software-engineering-project/pull/33): commit fora do padrão Conventional
+  Commits, barrado pelo Commitlint.
+- [#34](https://github.com/davigrossis/software-engineering-project/pull/34): teste quebrado, barrado pelo CI.
 
 ## Contribuindo
 
@@ -189,5 +237,8 @@ build), e a Vercel publica a `main`. Logo, só chega em produção o código que
 2. Faça commits no padrão Conventional Commits, em português: `<tipo>: <descrição>`.
    Tipos: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
    Ex.: `fix: trata erro ao carregar produtos`.
-3. Abra um pull request com `Closes #<número>`. A `main` é protegida: o merge só é possível por PR, com o CI
-   verde.
+3. Abra o pull request com `gh pr create` **sem `--body`**, para usar o template: preencha o `Closes #<número>` e
+   marque o checklist do que foi testado.
+4. O CodeRabbit escreve o resumo na descrição e revisa o código; a Vercel comenta o link do deploy de **Preview**.
+5. O merge só é liberado com os checks obrigatórios verdes: **Lint, tipos, testes e build** e **Mensagens de
+   commit (Conventional Commits)**.
