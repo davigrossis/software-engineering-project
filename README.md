@@ -170,7 +170,7 @@ O workflow `.github/workflows/commitlint.yml` valida, em todo pull request, se a
 
 O projeto está publicado na **Vercel**, integrada ao GitHub:
 
-- **Produção:** <!-- TODO: URL de produção da Vercel --> `URL_DE_PRODUCAO`
+- **Produção:** https://software-engineering-project-theta.vercel.app
 - **Preview:** todo pull request ganha um deploy próprio. O bot da Vercel comenta o link no PR, para testar a
   mudança antes do merge.
 - **Production:** todo merge na `main` é publicado automaticamente.
